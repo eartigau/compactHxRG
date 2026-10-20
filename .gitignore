@@ -1,0 +1,9 @@
+*.fits
+*.fits.gz
+__pycache__/
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.DS_Store
