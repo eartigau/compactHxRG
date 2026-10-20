@@ -35,11 +35,11 @@ def make_ramp(path, shape=(64, 64), seed=0):
     return dict(slope=slope, intercept=intercept, errors=errors, n=n)
 
 
-def test_roundtrip(tmp_path):
-    path = str(tmp_path / 'ramp.fits')
+def test_roundtrip(tmpdir):
+    path = str(tmpdir.join('ramp.fits'))
     orig = make_ramp(path)
     out = compact(path, verbose=False)
-    assert out == str(tmp_path / 'ramp_compact.fits')
+    assert out == str(tmpdir.join('ramp_compact.fits'))
     assert os.path.exists(path)
 
     with fits.open(out) as hdul:
@@ -72,8 +72,8 @@ def test_roundtrip(tmp_path):
     assert np.array_equal(n, orig['n'])
 
 
-def test_overwrite_then_skip(tmp_path):
-    path = str(tmp_path / 'ramp.fits')
+def test_overwrite_then_skip(tmpdir):
+    path = str(tmpdir.join('ramp.fits'))
     make_ramp(path)
     assert compact(path, overwrite=True, verbose=False) == path
     with fits.open(path) as hdul:
@@ -81,32 +81,32 @@ def test_overwrite_then_skip(tmp_path):
     before = open(path, 'rb').read()
     assert compact(path, overwrite=True, verbose=False) is None
     assert open(path, 'rb').read() == before
-    assert sorted(os.listdir(tmp_path)) == ['ramp.fits']
+    assert sorted(os.listdir(str(tmpdir))) == ['ramp.fits']
 
 
-def test_gzip_input_and_outdir(tmp_path):
-    path = str(tmp_path / 'ramp.fits.gz')
+def test_gzip_input_and_outdir(tmpdir):
+    path = str(tmpdir.join('ramp.fits.gz'))
     make_ramp(path)
-    out = compact(path, outdir=str(tmp_path / 'out'), verbose=False)
-    assert out == str(tmp_path / 'out' / 'ramp_compact.fits')
+    out = compact(path, outdir=str(tmpdir.join('out')), verbose=False)
+    assert out == str(tmpdir.join('out', 'ramp_compact.fits'))
     assert os.path.exists(out)
 
 
-def test_refuses_to_replace_input_without_overwrite(tmp_path):
-    path = str(tmp_path / 'ramp.fits')
+def test_refuses_to_replace_input_without_overwrite(tmpdir):
+    path = str(tmpdir.join('ramp.fits'))
     make_ramp(path)
     with pytest.raises(ValueError):
         compact(path, suffix='', verbose=False)
 
 
-def test_cli(tmp_path, capsys):
-    paths = [str(tmp_path / ('ramp%d.fits' % i)) for i in range(2)]
+def test_cli(tmpdir, capsys):
+    paths = [str(tmpdir.join('ramp%d.fits' % i)) for i in range(2)]
     for path in paths:
         make_ramp(path)
     assert main(paths + ['--overwrite', 'False']) == 0
     assert all(os.path.exists(p.replace('.fits', '_compact.fits')) for p in paths)
-    assert main([str(tmp_path / 'missing.fits')]) == 1
+    assert main([str(tmpdir.join('missing.fits'))]) == 1
     with pytest.raises(SystemExit):
-        main(paths + ['--overwrite', 'True', '--outdir', str(tmp_path)])
+        main(paths + ['--overwrite', 'True', '--outdir', str(tmpdir)])
     with pytest.raises(SystemExit):
         main(paths + ['--overwrite', 'maybe'])

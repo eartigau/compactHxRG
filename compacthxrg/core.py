@@ -128,7 +128,8 @@ def check(orig, path, verbose=True):
             if name in ('slope', 'intercept') and np.any(np.isnan(new) != ~finite):
                 raise RuntimeError('%s: NaN pixels not restored' % name)
             diff = np.abs(new - old)
-            ok = finite & (diff <= 0.505 * step)
+            with np.errstate(invalid='ignore'):  # NaN diffs, numpy < 1.19 warns
+                ok = finite & (diff <= 0.505 * step)
             max_err = np.max(diff[ok]) / step if np.any(ok) else 0.0
             if verbose:
                 print('    %-9s %-6s step %10.4g  max|err| %.3f step  clipped %d  '

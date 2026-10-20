@@ -35,7 +35,7 @@ are reported as failed and left alone.
 
 ### 1. Check your Python version
 
-You need Python 3.9 or newer:
+You need Python 3.6 or newer, with numpy 1.18 and astropy 4.0 or newer:
 
 ```
 python3 --version
